@@ -3,8 +3,8 @@ import caffe
 import numpy as np 
 import cv2
 import matplotlib.pyplot as plt
-from math import floor
 from os import listdir
+import time
 
 # Input image of any size, output the final conv5 layer 64*64*8 matrix
 def preprocessImg(img,opt):
@@ -102,8 +102,10 @@ class CaffeOptions:
 	dims = (256,256)
 	numJoints = 7
 	layerName = 'conv5_fusion'
-	modelDefFile = '../matlab.prototxt'
+	modelDefFile = '../deploy.prototxt'
+	# modelWeights = '../heatmap_train_iter_100000.caffemodel'
 	modelWeights = '../caffe-heatmap-flic.caffemodel'
+
 	inputDirs = 'sample_images/'
 
 def main():
@@ -113,33 +115,42 @@ def main():
 
 	opt = CaffeOptions()
 	#set up caffe
-	caffe.set_mode_gpu()
-	gpu_id = 0
-	caffe.set_device(gpu_id);
+	caffe.set_mode_cpu()
+	# gpu_id = 0
+	# caffe.set_device(gpu_id);
 	net = caffe.Net(opt.modelDefFile, opt.modelWeights, caffe.TEST)
 
-
-	images = listdir("sample_images")
+	folder = "mymotion"
+	images = listdir(folder)
+	sorted_files = sorted(images,key=lambda x:int(x.split(".")[0]))
 	# imagesa= images.sort()
 	# print images,imagesa
 	# a = './sample_images/'+images[0]
-	# print a
-	for im in images:
-		img = cv2.imread( './sample_images/27.png')
+	# print sorted_files
+	folder = "./"+folder+"/"
+	plt.ion()
+	for im in sorted_files:
+		start1=time.time()
+		img = cv2.imread( folder+im)
 		# print img
+		start2=time.time()
 		im_square = preprocessImg(img,opt)
 		# cv2.imshow('im_square', img)
 		# cv2.waitKey(0)
 		# cv2.destroyAllWindows()
+		# start = time.time()
+		start3=time.time()
 		heatmaps = applyNetImage(im_square,net,opt)
+		# print "Prediction of {} take {} seconds \n".format(im,time.time()-start)
+		start4=time.time()
 		if opt.visualise == True:
 			pdf_img = heatmapVisualize(heatmaps,im_square,opt)
 			plt.imshow(pdf_img)
-			plt.show()
+			plt.pause(0.01)
 		# cv2.imshow(pdf_img)
 		# cv2.waitKey(0)	
 		# cv2.destroyAllWindows()
-
+		print ("Time consumed is %f %f %f %f "%(start2-start1,start3-start2,start4-start3,time.time()-start4))
 
 	# test = heatmaps[0,:,:]
 	# min = np.min(test)
