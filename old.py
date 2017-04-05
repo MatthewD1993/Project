@@ -1,0 +1,53 @@
+import numpy as np
+import cv2
+import os
+
+cap = cv2.VideoCapture(0)
+BLUE = [255,0,0]
+BLACK = [0,0,0]
+
+cv2.namedWindow("frame", 0)
+cv2.resizeWindow("frame", 256,256)
+
+count = 0;
+while(True):
+  # Capture frame-by-frame
+  ret, frame = cap.read()
+
+  r = 256.0 / frame.shape[0]
+  print(frame.shape)
+  dim = (int(frame.shape[1] * r), 256)
+  x = (int(frame.shape[1] * r)-256)/2
+  #dim = (256,256)
+  print(x)
+  print(dim)
+  # perform the actual resizing of the image and show it
+  resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+  # NOTE: its img[y: y + h, x: x + w] and *not* img[x: x + w, y: y + h]
+  # x=
+  y=0
+  resized_padding = resized[y:y+256,x:x+256]
+
+  # resized_padding = cv2.copyMakeBorder(resized,0,0,x,x,cv2.BORDER_CONSTANT,value=BLACK)
+
+  # Our operations on the frame come here
+  #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+
+  # TODO Feed it to CNN
+
+  # Display the resulting frame
+  cv2.imshow('frame',resized_padding)
+  # cv2.imshow('frame',frame)
+
+  if not os.path.exists("mymotion"):
+    os.makedirs("mymotion")
+  cv2.imwrite("mymotion/%05d.jpg" % count, resized_padding)     # save frame as JPEG file
+  # cv2.imwrite("sample_images/frame%05d.jpg" % count, frame)     # save frame as JPEG file
+  count = count + 1
+  if cv2.waitKey(1) & 0xFF == ord('q'):
+    break
+
+# When everything done, release the capture
+cap.release()
+cv2.destroyAllWindows()

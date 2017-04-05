@@ -1,3 +1,4 @@
+import argparse
 import caffe
 import numpy as np 
 import cv2
@@ -10,9 +11,9 @@ class CaffeOptions:
 	dims = (256,256)
 	numJoints = 7
 	layerName = 'conv8'
-	modelDefFile = '../matlab.prototxt'
+	modelDefFile = '../squzee_apply.prototxt'
 	# cmodelWeights = '../caffe-heatmap-flic.caffemodel'
-	modelWeights = '../caffe-heatmap-flic.caffemodel'
+	modelWeights = '../../../data/snapshots/heatmap_train_iter_99600.caffemodel'
 
 	inputDirs = './mymotion'
 # Input image of any size, output the final conv5 layer 64*64*8 matrix
@@ -35,6 +36,9 @@ def applyNetImage(img, net, opt):
 	params = net.forward()
 	heatmaps = params[opt.layerName][0,...]
 	# print 'Hello, I am fine'
+
+
+
 	return heatmaps
 
 def heatmapVisualize(heatmaps,img,opt):
@@ -60,11 +64,14 @@ def heatmapVisualize(heatmaps,img,opt):
 	clrmask = np.zeros((256,256,3))
 
 	for i in xrange(7):
+
+		print np.amax(heatmaps[i,:,:])
 		alpha = np.divide(heatmaps[i,:,:],np.amax(heatmaps[i,:,:]))
+		# print alpha
 		idx = alpha < 0.99
 		
 		alpha[idx] = 0.
-		alpha_large = cv2.resize(alpha,None,fx=4, fy=4, interpolation = cv2.INTER_CUBIC)
+		alpha_large = cv2.resize(alpha,None,fx=4, fy=4, interpolation = cv2.INTER_LINEAR)
 		# print  "alpha size is:{}".format(alpha_large.shape)
 		# plt.imshow(alpha_large,cmap='gray',vmin=0,vmax=1)
 		# plt.title("alpha large")
@@ -101,18 +108,34 @@ def heatmapVisualize(heatmaps,img,opt):
 		# print np.multiply(np.subtract(1.,alpha_ready),background)
 		# print "---------"
 		# print pdf_img
-	# print clrmask
+	print clrmask
 	return pdf_img
 
 
 def main():
+	parser = argparse.ArgumentParser(
+		description = 'Find human joints position from images')
 	
+
 	opt = CaffeOptions()
 	#set up caffe
 	caffe.set_mode_gpu()
 	gpu_id = 0
 	caffe.set_device(gpu_id);
 	net = caffe.Net(opt.modelDefFile, opt.modelWeights, caffe.TEST)
+
+
+	# for name, blobs in net.params.items():
+	# 	print("%s : %s"% (name, blobs[0].data.shape))
+	# 	arr = np.asarray(blobs[0].data)
+	
+	# 	a = plt.hist(arr.ravel(),bins=30)
+	# 	plt.show()
+		# fig, ax = plt.subplots()
+		# ax.plot(a)
+		# fig.show()
+
+		# plt.pause(5)
 
 	folder = opt.inputDirs
 	images = listdir(folder)

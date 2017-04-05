@@ -3,6 +3,9 @@ import cv2
 import os
 
 cap = cv2.VideoCapture(0)
+width = cap.get(3)
+height = cap.get(4)
+print (width, height)
 BLUE = [255,0,0]
 BLACK = [0,0,0]
 
@@ -24,7 +27,7 @@ while(True):
 	# perform the actual resizing of the image and show it
 	resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
 	# NOTE: its img[y: y + h, x: x + w] and *not* img[x: x + w, y: y + h]
-	# x=
+	
 	y=0
 	resized_padding = resized[y:y+256,x:x+256]
 
@@ -41,9 +44,9 @@ while(True):
 	# cv2.imshow('frame',frame)
 
 	if not os.path.exists("mymotion"):
-		os.makedirs("mymotions")
+		os.makedirs("mymotion")
 	cv2.imwrite("mymotion/%05d.jpg" % count, resized_padding)     # save frame as JPEG file
-	# cv2.imwrite("sample_images/frame%05d.jpg" % count, frame)     # save frame as JPEG file
+
 	count = count + 1
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
