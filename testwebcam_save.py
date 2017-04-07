@@ -14,11 +14,11 @@ _ = cap.set(3,size)
 _ = cap.set(4,size)
 dim = (256,256)
 
-# Set up caffe model
+# Set up caffe model   /home/cdeng/caffe-heatmap/data/snapshots/heatmap_train_iter_29000.caffemodel
 caffe.set_mode_gpu()
 caffe.set_device(0)
 net = caffe.Net('../deploy.prototxt','../caffe-heatmap-flic.caffemodel',caffe.TEST)
-heat_layer = 'conv5_fusion'
+heat_layer = 'conv8'
 
 # OpenCV read in BGR format iamge!
 

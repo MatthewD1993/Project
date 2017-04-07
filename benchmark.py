@@ -15,7 +15,7 @@ class TestData:
 	'Test data handler'
 	def __init__(self, test_txt, path_prefix='', tolerance=1.0):
 		self.path_prefix = path_prefix
-		self.test_txt = path_prefix + '/' + test_txt
+		self.test_txt =  test_txt
 		self.tolerance = tolerance
 		# print self.test_txt
 		self.test_data_dict = []
@@ -29,11 +29,12 @@ class TestData:
 		rs = 5
 		try:
 			with open(self.test_txt,'r') as f:
+				
 				for line in f:
 					self.num_items = self.num_items + 1
 					entry = line.split()
 					image_name	= self.path_prefix + '/' + entry[0]
-					pos 		= np.asarray(entry[1].split(',')).reshape([14,2]).astype(np.float) # pos is a 7*2 2D array
+					pos 		= np.asarray(entry[1].split(',')).reshape([7,2]).astype(np.float) # pos is a 7*2 2D array
 					error_range = (np.linalg.norm(pos[head,:]-pos[ls,:]) + np.linalg.norm(pos[head,:]-pos[ls,:]))*0.5*self.tolerance
 					# print error_range
 					self.test_data_dict.append( (image_name, pos, error_range) )
@@ -99,12 +100,14 @@ def main():
 	parser.add_argument("test_file",help = "The text file including image location and ground truth joint positions.")
 	parser.add_argument("model",help = "The CNN model file.")
 	parser.add_argument("weights",help = "The trained weights file.")
-	parser.add_argument("-p","--path",help = "The path to the files.", default ='')
+	parser.add_argument("prediction_file",help = "The path of output prediction file.")
+	parser.add_argument("-p","--path",help = "The root path the images.", default ='')
 	parser.add_argument("-e","--error_tolerance",type = float, 
 		help = "The error tolerance. Default is 1, means average half distance from head to shoulders.",default = 1.0)
 	args 		= parser.parse_args()
 	path = args.path
 	tolerance = args.error_tolerance
+	prediction_file = args.prediction_file
 
 	num_joints = 7
 
@@ -113,6 +116,7 @@ def main():
 	caffe.set_device(0)
 	net = caffe.Net(args.model, args.weights, caffe.TEST)
 
+	print args.test_file
 	time_obj_init = time.time()
 	test_data = TestData(args.test_file, path, tolerance)
 	test_data.init()
@@ -120,8 +124,8 @@ def main():
 	print "Time to initialize test data object {}".format(end_obj_init- time_obj_init)
 
 	# if os.path.isfile('summary.txt'):
-	summary = open('summary_MPII.csv','w+')
-	prediction = open('prediction_MPII.txt','w')
+	summary = open('summary.csv','w+')
+	prediction = open(prediction_file,'w')
 
 	i = 0
 	time_start_iter = time.time()
